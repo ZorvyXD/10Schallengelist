@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin">
+    <title>10SCL - 10 Second Challenge List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#121212',
+                        sidebarBg: '#18181b',
+                        panelBg: '#1e1e24',
+                        accent: '#e5e5e5',
+                        accentHover: '#ffffff'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .level-bg {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .level-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(18, 18, 18, 0.82);
+            z-index: 0;
+        }
+        .level-bg > * {
+            position: relative;
+            z-index: 1;
+        }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-100 min-h-screen font-sans flex flex-col selection:bg-zinc-600 selection:text-white">
+
+    <!-- Top Navbar -->
+    <header class="bg-[#18181b] border-b border-zinc-800 h-14 px-4 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center space-x-6 overflow-x-auto scrollbar-none py-2">
+            <span id="brand-label" class="font-black text-lg tracking-wider text-white bg-zinc-800/80 px-3 py-1 rounded-lg border border-zinc-600/50">10SCL <span class="text-xs font-normal text-zinc-300">v1.0</span></span>
+            <nav class="flex items-center space-x-1 sm:space-x-2 text-sm font-semibold">
+                <button onclick="switchMainTab('list')" id="nav-btn-list" class="px-3 py-1.5 rounded-md bg-zinc-800 text-white transition">List</button>
+                <button onclick="switchMainTab('packs')" id="nav-btn-packs" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition">Packs</button>
+                <button onclick="switchMainTab('leaderboard')" id="nav-btn-leaderboard" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition">Leaderboard</button>
+                <button onclick="switchMainTab('roulette')" id="nav-btn-roulette" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition">Roulette</button>
+                <button onclick="switchMainTab('submit')" id="nav-btn-submit" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition">Submit Records</button>
+                <button onclick="switchMainTab('submit-lvl')" id="nav-btn-submit-lvl" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition">Submit Levels</button>
+                <button onclick="switchMainTab('admin')" id="nav-btn-admin" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition">Admin</button>
+            </nav>
+        </div>
+        <div class="flex items-center space-x-3 flex-shrink-0">
+            <div id="user-auth-area" class="flex items-center space-x-2"></div>
+            <div class="hidden sm:flex bg-zinc-900 rounded-lg p-0.5 border border-zinc-800 text-xs font-bold">
+                <button id="list-toggle-10" onclick="switchListType('10')" class="bg-zinc-800 text-white px-2.5 py-1 rounded-md">10SCL</button>
+                <button id="list-toggle-5" onclick="switchListType('5')" class="text-zinc-400 px-2.5 py-1 rounded-md hover:text-white">5SCL</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black/70 z-[100] hidden items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-sm shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg">Log In / Register</h3>
+                <button onclick="closeLoginModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-zinc-500 mb-4">First time using a username registers it with your password. After that, only that password works — no one else can take your name.</p>
+            <form onsubmit="handleGlobalLogin(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Username</label>
+                    <input id="global-login-user" type="text" required autocomplete="username" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500" placeholder="Your username">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Password</label>
+                    <input id="global-login-pass" type="password" required autocomplete="current-password" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500" placeholder="Password">
+                </div>
+                <button type="submit" class="w-full bg-zinc-100 text-zinc-900 font-bold py-2.5 rounded-lg hover:bg-white transition">Log In / Register</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application Grid -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <aside id="left-sidebar" class="w-full md:w-80 bg-sidebarBg border-r border-zinc-800 flex flex-col h-[calc(100vh-3.5rem)]">
+            <div class="p-3 border-b border-zinc-800">
+                <input type="text" id="level-search" oninput="filterLevelList()" placeholder="Search levels..." class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500 transition">
+            </div>
+            <div id="sidebar-levels" class="flex-1 overflow-y-auto divide-y divide-zinc-800/40"></div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 bg-darkBg" id="main-content-area"></main>
+
+        <aside id="right-sidebar" class="w-full lg:w-72 bg-sidebarBg border-l border-zinc-800 p-5 overflow-y-auto hidden xl:block space-y-6 text-xs">
+            <div>
+                <h3 class="font-bold uppercase tracking-wider text-zinc-400 mb-3 border-b border-zinc-800 pb-2">List Editors</h3>
+                <ul id="editors-list" class="space-y-2 text-zinc-300 font-medium"></ul>
+            </div>
+            <div>
+                <h3 class="font-bold uppercase tracking-wider text-zinc-400 mb-3 border-b border-zinc-800 pb-2">Rules</h3>
+                <ul class="space-y-2.5 text-zinc-400">
+                    <li>• Records MUST have the full completion in the video.</li>
+                    <li>• NO fps changes are allowed in the middle of the level.</li>
+                    <li>• The MINIMUM fps allowed is 60 for completions.</li>
+                    <li>• ALL clicks must be through your microphone (no click sounds mod).</li>
+                    <li>• Levels MUST be optimized enough for low-end devices.</li>
+                    <li>• Every level that has empty space to add time will be denied.</li>
+                    <li>• Levels MUST state the correct duration in the editor.</li>
+                </ul>
+            </div>
+        </aside>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-zinc-900 border border-zinc-700 text-white px-4 py-2.5 rounded-lg shadow-xl text-sm z-50">Action completed!</div>
+
+    <script>
+        const ADMIN_PASSWORD = "vR7!mQ2#Lx9@Tw4$Np8&Hs1";
+        const OWNER_NAME = "Zorvy";
+        // After you create the public gist, paste its ID here and redeploy so everyone loads the same data.
+        // Example: const DEFAULT_GIST_ID = "a1b2c3d4e5f67890abcdef1234567890";
+        const DEFAULT_GIST_ID = "";
+
+        let currentListType = '10';
+        let currentTab = 'list';
+        let selectedLevelId = null;
+        let isAdminLoggedIn = false;
+        let adminSubTab = 'levels';
+        let currentUser = null;
+
+        let levels10 = [];
+        let levels5 = [];
+        let pendingLevels = [];
+        let pendingRecords = [];
+        let listEditors = [];
+        let accounts = {};
+        let packs = []; // { id, name, packId }
+        let listSettings = {
+            basePoints: 250,   // #1 always this
+            decayRate: 0.948,  // each rank multiplies previous by this
+            mainListSize: 50   // ranks 1-50 = main, 51+ = legacy (0 pts, no rank #)
+        };
+
+        let _suppressCloudWrite = false;
+        let _cloudReady = false;
+        let _saveTimer = null;
+        let _pollTimer = null;
+        let _lastCloudUpdatedAt = null;
+
+        // GitHub Gist cloud storage (replaces Firebase)
+        // Everyone can READ a public gist. Only browsers with a token can WRITE.
+        const GIST_FILENAME = 'scl-data.json';
+        function getGistId() { return (localStorage.getItem('scl_gist_id') || DEFAULT_GIST_ID || '').trim(); }
+        function getGithubToken() { return (localStorage.getItem('scl_github_token') || '').trim(); }
+        function setGistId(id) { localStorage.setItem('scl_gist_id', (id || '').trim()); }
+        function setGithubToken(t) { localStorage.setItem('scl_github_token', (t || '').trim()); }
+
+        function applyCloudData(data) {
+            if (!data) return;
+            levels10 = data.levels10 || [];
+            levels5 = data.levels5 || [];
+            pendingLevels = data.pendingLevels || [];
+            pendingRecords = data.pendingRecords || [];
+            listEditors = data.listEditors || [];
+            accounts = data.accounts || {};
+            packs = data.packs || [];
+            if (data.listSettings) listSettings = { ...listSettings, ...data.listSettings };
+            if (data.updatedAt) _lastCloudUpdatedAt = data.updatedAt;
+            recalculateAllPoints();
+        }
+
+        function getPayload() {
+            return {
+                levels10,
+                levels5,
+                pendingLevels,
+                pendingRecords,
+                listEditors,
+                accounts,
+                packs,
+                listSettings,
+                updatedAt: new Date().toISOString()
+            };
+        }
+
+        function persistLocal() {
+            try {
+                localStorage.setItem('scl_levels10', JSON.stringify(levels10));
+                localStorage.setItem('scl_levels5', JSON.stringify(levels5));
+                localStorage.setItem('scl_pendingLevels', JSON.stringify(pendingLevels));
+                localStorage.setItem('scl_pendingRecords', JSON.stringify(pendingRecords));
+                localStorage.setItem('scl_listEditors', JSON.stringify(listEditors));
+                localStorage.setItem('scl_accounts', JSON.stringify(accounts));
+                localStorage.setItem('scl_packs', JSON.stringify(packs));
+                localStorage.setItem('scl_listSettings', JSON.stringify(listSettings));
+            } catch (e) {}
+        }
+
+        function refreshUI() {
+            try {
+                renderEditorsSidebar();
+                renderSidebar();
+                renderMainContent();
+                renderUserAuthArea();
+            } catch (e) {}
+        }
+
+        async function fetchGistData() {
+            const gistId = getGistId();
+            if (!gistId) return null;
+            const headers = { 'Accept': 'application/vnd.github+json' };
+            const token = getGithubToken();
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            const res = await fetch('https://api.github.com/gists/' + encodeURIComponent(gistId), { headers });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                throw new Error(res.status + ' ' + (text || res.statusText));
+            }
+            const gist = await res.json();
+            const file = gist.files && (gist.files[GIST_FILENAME] || Object.values(gist.files)[0]);
+            if (!file) return null;
+            let content = file.content;
+            if (file.truncated && file.raw_url) {
+                const rawRes = await fetch(file.raw_url + (file.raw_url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                if (rawRes.ok) content = await rawRes.text();
+            }
+            if (!content) return null;
+            return JSON.parse(content);
+        }
+
+        async function pushGistData(payload) {
+            const gistId = getGistId();
+            const token = getGithubToken();
+            if (!gistId) throw new Error('No Gist ID set — open Admin → Cloud (GitHub)');
+            if (!token) throw new Error('No GitHub token set — open Admin → Cloud (GitHub)');
+            const body = {
+                files: {
+                    [GIST_FILENAME]: { content: JSON.stringify(payload, null, 2) }
+                }
+            };
+            const res = await fetch('https://api.github.com/gists/' + encodeURIComponent(gistId), {
+                method: 'PATCH',
+                headers: {
+                    'Accept': 'application/vnd.github+json',
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                throw new Error(res.status + ' ' + (text || res.statusText));
+            }
+            return res.json();
+        }
+
+        async function loadFromGithub(silent) {
+            const gistId = getGistId();
+            if (!gistId) {
+                _cloudReady = true;
+                if (!silent) console.warn('No Gist ID — local only. Set it in Admin → Cloud (GitHub)');
+                return;
+            }
+            try {
+                const data = await fetchGistData();
+                if (data) {
+                    // Don't overwrite local with empty cloud if local has levels and cloud is empty
+                    const cloudHas = (data.levels10 && data.levels10.length) || (data.levels5 && data.levels5.length);
+                    const localHas = (levels10 && levels10.length) || (levels5 && levels5.length);
+                    if (!cloudHas && localHas) {
+                        console.log('Cloud gist empty, local has data — keeping local until you Force Upload');
+                    } else {
+                        _suppressCloudWrite = true;
+                        applyCloudData(data);
+                        _suppressCloudWrite = false;
+                        persistLocal();
+                        refreshUI();
+                    }
+                }
+                _cloudReady = true;
+            } catch (err) {
+                console.error('GitHub load failed:', err);
+                _cloudReady = true;
+                if (!silent) showToast('GitHub load failed: ' + (err.message || err));
+            }
+        }
+
+        function startCloudPoll() {
+            if (_pollTimer) clearInterval(_pollTimer);
+            _pollTimer = setInterval(async function() {
+                if (!getGistId() || document.hidden) return;
+                try {
+                    const data = await fetchGistData();
+                    if (!data || !data.updatedAt) return;
+                    if (_lastCloudUpdatedAt && data.updatedAt === _lastCloudUpdatedAt) return;
+                    if (_suppressCloudWrite) return;
+                    _suppressCloudWrite = true;
+                    applyCloudData(data);
+                    _suppressCloudWrite = false;
+                    persistLocal();
+                    refreshUI();
+                    console.log('Cloud poll: updated from gist', data.updatedAt);
+                } catch (e) { /* quiet */ }
+            }, 15000);
+        }
+
+        function loadData() {
+            try {
+                const savedUser = localStorage.getItem('scl_currentUser');
+                if (savedUser) currentUser = JSON.parse(savedUser);
+            } catch (e) { currentUser = null; }
+
+            try {
+                levels10 = JSON.parse(localStorage.getItem('scl_levels10')) || [];
+                levels5 = JSON.parse(localStorage.getItem('scl_levels5')) || [];
+                pendingLevels = JSON.parse(localStorage.getItem('scl_pendingLevels')) || [];
+                pendingRecords = JSON.parse(localStorage.getItem('scl_pendingRecords')) || [];
+                listEditors = JSON.parse(localStorage.getItem('scl_listEditors')) || [];
+                accounts = JSON.parse(localStorage.getItem('scl_accounts')) || {};
+                packs = JSON.parse(localStorage.getItem('scl_packs')) || [];
+                const savedSettings = JSON.parse(localStorage.getItem('scl_listSettings'));
+                if (savedSettings) listSettings = { ...listSettings, ...savedSettings };
+                recalculateAllPoints();
+            } catch (e) {
+                levels10 = []; levels5 = []; pendingLevels = []; pendingRecords = [];
+                listEditors = []; accounts = {}; packs = [];
+            }
+
+            loadFromGithub(false).then(function() { startCloudPoll(); });
+        }
+
+        function saveData() {
+            if (currentUser) localStorage.setItem('scl_currentUser', JSON.stringify(currentUser));
+            else localStorage.removeItem('scl_currentUser');
+            persistLocal();
+
+            if (_suppressCloudWrite) return;
+            if (!getGistId() || !getGithubToken()) return; // read-only visitors; admin writes with token
+            clearTimeout(_saveTimer);
+            _saveTimer = setTimeout(function() {
+                const payload = getPayload();
+                pushGistData(payload)
+                    .then(function() {
+                        _lastCloudUpdatedAt = payload.updatedAt;
+                        console.log('GitHub save OK');
+                    })
+                    .catch(function(err) {
+                        console.error('GitHub save error:', err);
+                        showToast('GitHub save failed: ' + (err.message || err));
+                    });
+            }, 500);
+        }
+
+        function forceCloudUpload() {
+            if (!getGistId()) {
+                showToast('Set Gist ID first — Admin → Cloud (GitHub)');
+                return;
+            }
+            if (!getGithubToken()) {
+                showToast('Set GitHub token first — Admin → Cloud (GitHub)');
+                return;
+            }
+            showToast('Uploading to GitHub Gist…');
+            const payload = getPayload();
+            pushGistData(payload)
+                .then(function() {
+                    _lastCloudUpdatedAt = payload.updatedAt;
+                    console.log('Force upload OK');
+                    showToast('Uploaded to GitHub — others should refresh');
+                })
+                .catch(function(err) {
+                    console.error('Force upload failed:', err);
+                    var msg = err.message || String(err);
+                    if (/401|Bad credentials|Unauthorized/i.test(msg)) {
+                        showToast('Invalid GitHub token (401) — create a new PAT with gist scope');
+                    } else if (/404|Not Found/i.test(msg)) {
+                        showToast('Gist not found (404) — check the Gist ID');
+                    } else if (/403|rate limit|forbidden/i.test(msg)) {
+                        showToast('GitHub blocked write (403) — check token scopes / rate limit');
+                    } else {
+                        showToast('Upload failed: ' + msg);
+                    }
+                });
+        }
+
+        function saveGithubSettings() {
+            const id = (document.getElementById('gh-gist-id') || {}).value || '';
+            const token = (document.getElementById('gh-token') || {}).value || '';
+            setGistId(id);
+            // Only update token if field is non-empty (so re-saving doesn't wipe a hidden token)
+            if (token && token !== '••••••••') setGithubToken(token);
+            showToast('GitHub settings saved');
+            loadFromGithub(false).then(function() {
+                startCloudPoll();
+                refreshUI();
+            });
+        }
+
+        // Points for a 1-based rank. Main list 1-50 only; legacy = 0
+        function calcPointsForRank(rank) {
+            if (rank < 1 || rank > listSettings.mainListSize) return 0;
+            const pts = listSettings.basePoints * Math.pow(listSettings.decayRate, rank - 1);
+            return Math.round(pts);
+        }
+
+        function recalculateAllPoints() {
+            [levels10, levels5].forEach(arr => {
+                arr.forEach((lvl, i) => {
+                    lvl.points = calcPointsForRank(i + 1);
+                });
+            });
+        }
+
+        function getLevels() { return currentListType === '10' ? levels10 : levels5; }
+        function setLevels(arr) {
+            arr.forEach((lvl, i) => { lvl.points = calcPointsForRank(i + 1); });
+            if (currentListType === '10') levels10 = arr; else levels5 = arr;
+            saveData();
+        }
+        function isEditor(name) {
+            if (!name) return false;
+            return listEditors.some(e => e.name.toLowerCase() === name.toLowerCase());
+        }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
+        }
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // Extract YouTube video ID from any common URL form
+        function getYouTubeId(url) {
+            if (!url) return null;
+            url = String(url).trim();
+            let m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/i);
+            if (m) return m[1];
+            m = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/i);
+            if (m) return m[1];
+            m = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{6,})/i);
+            if (m) return m[1];
+            m = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{6,})/i);
+            if (m) return m[1];
+            // bare ID
+            if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+            return null;
+        }
+
+        // Convert any YouTube URL into a proper embed URL
+        function toEmbedUrl(url) {
+            const id = getYouTubeId(url);
+            if (id) {
+                // autoplay=1 so click-to-play starts immediately; origin helps avoid Error 153
+                const origin = encodeURIComponent(window.location.origin || 'https://localhost');
+                return 'https://www.youtube.com/embed/' + id + '?rel=0&modestbranding=1&autoplay=1&enablejsapi=1&origin=' + origin;
+            }
+            return url ? String(url).trim() : '';
+        }
+
+        function toWatchUrl(url) {
+            const id = getYouTubeId(url);
+            if (id) return 'https://www.youtube.com/watch?v=' + id;
+            return url ? String(url).trim() : '';
+        }
+
+        function toThumbUrl(url) {
+            const id = getYouTubeId(url);
+            if (id) return 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
+            return '';
+        }
+
+        // Click thumbnail → load real YouTube iframe (more reliable than auto-embed)
+        function playLevelVideo(btn) {
+            const wrap = btn.closest('[data-video-wrap]');
+            if (!wrap) return;
+            const raw = wrap.getAttribute('data-video-url') || '';
+            const embed = toEmbedUrl(raw);
+            if (!embed) return;
+            wrap.innerHTML = '<iframe class="w-full h-full absolute inset-0" src="' + escapeHtml(embed) + '" title="Level video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="origin"></iframe>';
+        }
+
+        function renderUserAuthArea() {
+            const area = document.getElementById('user-auth-area');
+            if (currentUser) {
+                area.innerHTML = `
+                    <span class="text-xs text-zinc-300 hidden sm:inline"><i class="fa-solid fa-user mr-1"></i>${escapeHtml(currentUser.username)}</span>
+                    <button onclick="logoutGlobal()" class="text-xs bg-zinc-800 border border-zinc-700 px-2.5 py-1 rounded-md text-zinc-300 hover:text-white hover:bg-zinc-700 transition">Logout</button>
+                `;
+            } else {
+                area.innerHTML = `
+                    <button onclick="openLoginModal()" class="text-xs bg-zinc-100 text-zinc-900 font-bold px-3 py-1.5 rounded-md hover:bg-white transition">
+                        <i class="fa-solid fa-right-to-bracket mr-1"></i> Login
+                    </button>
+                `;
+            }
+        }
+
+        function openLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-modal').classList.add('flex');
+            document.getElementById('global-login-user').value = '';
+            document.getElementById('global-login-pass').value = '';
+            setTimeout(() => document.getElementById('global-login-user').focus(), 50);
+        }
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('flex');
+        }
+
+        function handleGlobalLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('global-login-user').value.trim();
+            const password = document.getElementById('global-login-pass').value;
+            if (!username || !password) { showToast('Enter username and password'); return; }
+
+            // Admin password is only for unlocking Admin after login — never for account login/register
+            if (password === ADMIN_PASSWORD) {
+                showToast('That password is reserved and cannot be used for login');
+                return;
+            }
+
+            const key = username.toLowerCase();
+            const existing = accounts[key];
+
+            if (existing) {
+                if (existing.password !== password) {
+                    showToast('Wrong password — that username is taken');
+                    return;
+                }
+                currentUser = { username: existing.username };
+                saveData();
+                renderUserAuthArea();
+                closeLoginModal();
+                showToast('Logged in as ' + existing.username);
+                if (currentTab === 'admin') renderMainContent();
+            } else {
+                accounts[key] = { username: username, password: password };
+                currentUser = { username: username };
+                saveData();
+                renderUserAuthArea();
+                closeLoginModal();
+                showToast('Account created & logged in as ' + username);
+                if (currentTab === 'admin') renderMainContent();
+            }
+        }
+
+        function logoutGlobal() {
+            currentUser = null;
+            isAdminLoggedIn = false;
+            saveData();
+            renderUserAuthArea();
+            showToast('Logged out');
+            if (currentTab === 'admin') renderMainContent();
+        }
+
+        function renderEditorsSidebar() {
+            const ul = document.getElementById('editors-list');
+            if (!listEditors.length) {
+                ul.innerHTML = '<li class="text-zinc-500 italic">No editors yet</li>';
+                return;
+            }
+            ul.innerHTML = listEditors.map((e, i) => `
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid ${i === 0 ? 'fa-crown text-amber-500' : 'fa-user text-zinc-400'}"></i>
+                    <span>${escapeHtml(e.name)}</span>
+                </li>
+            `).join('');
+        }
+
+        function switchListType(type) {
+            currentListType = type;
+            document.getElementById('list-toggle-10').className = type === '10' ? 'bg-zinc-800 text-white px-2.5 py-1 rounded-md' : 'text-zinc-400 px-2.5 py-1 rounded-md hover:text-white';
+            document.getElementById('list-toggle-5').className = type === '5' ? 'bg-zinc-800 text-white px-2.5 py-1 rounded-md' : 'text-zinc-400 px-2.5 py-1 rounded-md hover:text-white';
+            document.getElementById('brand-label').innerHTML = type + 'SCL <span class="text-xs font-normal text-zinc-300">v1.0</span>';
+            selectedLevelId = null;
+            renderSidebar();
+            if (currentTab === 'list') renderMainContent();
+            else switchMainTab(currentTab);
+        }
+
+        function switchMainTab(tab) {
+            currentTab = tab;
+            ['list','packs','leaderboard','roulette','submit','submit-lvl','admin'].forEach(t => {
+                const btn = document.getElementById('nav-btn-' + t);
+                if (btn) {
+                    btn.className = t === tab
+                        ? 'px-3 py-1.5 rounded-md bg-zinc-800 text-white transition'
+                        : 'px-3 py-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition';
+                }
+            });
+            const showSidebars = tab === 'list' || tab === 'packs' || tab === 'leaderboard' || tab === 'roulette';
+            document.getElementById('left-sidebar').style.display = showSidebars ? '' : 'none';
+            document.getElementById('right-sidebar').classList.toggle('hidden', !showSidebars);
+            renderMainContent();
+        }
+
+        function renderSidebar() {
+            const container = document.getElementById('sidebar-levels');
+            const levels = getLevels();
+            const search = (document.getElementById('level-search')?.value || '').toLowerCase();
+            container.innerHTML = '';
+            if (!levels.length) {
+                container.innerHTML = '<div class="p-4 text-zinc-500 text-sm text-center">No levels yet</div>';
+                return;
+            }
+            let legacyHeaderShown = false;
+            levels.forEach((lvl, idx) => {
+                if (search && !lvl.name.toLowerCase().includes(search) && !lvl.creator.toLowerCase().includes(search)) return;
+                const rank = idx + 1;
+                const isLegacy = rank > listSettings.mainListSize;
+
+                // Divider between main list and legacy
+                if (isLegacy && !legacyHeaderShown && !search) {
+                    legacyHeaderShown = true;
+                    const hdr = document.createElement('div');
+                    hdr.className = 'px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-600 bg-zinc-900/50 sticky top-0';
+                    hdr.textContent = 'Legacy';
+                    container.appendChild(hdr);
+                }
+
+                const div = document.createElement('div');
+                div.className = 'px-4 py-3 cursor-pointer hover:bg-zinc-800/60 transition relative overflow-hidden ' + (selectedLevelId === lvl.id ? 'bg-zinc-800' : '');
+                if (lvl.thumbnail) {
+                    div.style.backgroundImage = "url('" + lvl.thumbnail + "')";
+                    div.classList.add('level-bg');
+                }
+                div.onclick = () => { selectedLevelId = lvl.id; renderSidebar(); renderMainContent(); };
+                if (isLegacy) {
+                    // Legacy: no rank number, no points
+                    div.innerHTML = `
+                        <div class="min-w-0">
+                            <div class="font-semibold text-sm truncate text-zinc-400">${escapeHtml(lvl.name)}</div>
+                            <div class="text-xs text-zinc-500 truncate">${escapeHtml(lvl.creator)}</div>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="min-w-0">
+                                <div class="text-xs text-zinc-500 font-bold">#${rank}</div>
+                                <div class="font-semibold text-sm truncate">${escapeHtml(lvl.name)}</div>
+                                <div class="text-xs text-zinc-400 truncate">${escapeHtml(lvl.creator)}</div>
+                            </div>
+                            <div class="text-xs font-bold text-zinc-300 ml-2">${lvl.points}</div>
+                        </div>
+                    `;
+                }
+                container.appendChild(div);
+            });
+        }
+        function filterLevelList() { renderSidebar(); }
+
+        function renderPacks(area) {
+            area.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-black mb-6">Level Packs</h2>
+                    ${packs.length ? `
+                    <div class="space-y-3">
+                        ${packs.map(p => `
+                            <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl px-5 py-4 flex items-center justify-between">
+                                <div>
+                                    <div class="font-bold text-lg">${escapeHtml(p.name)}</div>
+                                    <div class="text-xs text-zinc-500 font-mono mt-0.5">ID: ${escapeHtml(p.packId)}</div>
+                                </div>
+                                <i class="fa-solid fa-box-open text-zinc-600"></i>
+                            </div>
+                        `).join('')}
+                    </div>` : `
+                    <div class="text-center py-16 text-zinc-500">
+                        <i class="fa-solid fa-box-open text-4xl text-zinc-600 mb-4"></i>
+                        <p>No packs yet. Admins can add them in the Admin panel.</p>
+                    </div>`}
+                </div>
+            `;
+        }
+
+        function renderMainContent() {
+            const area = document.getElementById('main-content-area');
+            if (currentTab === 'list') renderLevelDetail(area);
+            else if (currentTab === 'packs') renderPacks(area);
+            else if (currentTab === 'leaderboard') renderLeaderboard(area);
+            else if (currentTab === 'roulette') renderRoulette(area);
+            else if (currentTab === 'submit') renderSubmitRecord(area);
+            else if (currentTab === 'submit-lvl') renderSubmitLevel(area);
+            else if (currentTab === 'admin') renderAdmin(area);
+        }
+
+        function renderLevelDetail(area) {
+            const levels = getLevels();
+            const lvl = levels.find(l => l.id === selectedLevelId) || levels[0];
+            if (!lvl) {
+                area.innerHTML = '<div class="text-center py-20 text-zinc-500">No levels yet. Add some in Admin.</div>';
+                return;
+            }
+            if (!selectedLevelId) selectedLevelId = lvl.id;
+            const rank = levels.findIndex(l => l.id === lvl.id) + 1;
+            const isLegacy = rank > listSettings.mainListSize;
+            const thumbStyle = lvl.thumbnail ? "background-image:url('" + lvl.thumbnail + "')" : '';
+            area.innerHTML = `
+                <div class="max-w-4xl mx-auto relative rounded-xl overflow-hidden border border-zinc-800 ${lvl.thumbnail ? 'level-bg' : ''}" style="${thumbStyle}">
+                    <div class="p-6 md:p-8">
+                        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
+                            <div>
+                                <div class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">${isLegacy ? 'Legacy' : '#' + rank} · ${currentListType}SCL</div>
+                                <h1 class="text-2xl md:text-3xl font-black text-white mb-2">${escapeHtml(lvl.name)}</h1>
+                                <div class="flex flex-wrap gap-3 text-sm text-zinc-400">
+                                    <span><i class="fa-solid fa-user-pen mr-1"></i> Creator: <span class="text-zinc-200">${escapeHtml(lvl.creator)}</span></span>
+                                    <span><i class="fa-solid fa-check-double mr-1"></i> Verifier: <span class="text-zinc-200">${escapeHtml(lvl.verifier)}</span></span>
+                                    <span><i class="fa-solid fa-upload mr-1"></i> Publisher: <span class="text-zinc-200">${escapeHtml(lvl.publisher)}</span></span>
+                                </div>
+                            </div>
+                            ${isLegacy ? `
+                            <div class="text-right">
+                                <div class="text-sm font-bold text-zinc-500 uppercase">Legacy</div>
+                                <div class="text-xs text-zinc-600">0 points</div>
+                            </div>` : `
+                            <div class="text-right">
+                                <div class="text-3xl font-black text-white">${lvl.points}</div>
+                                <div class="text-xs text-zinc-500">points</div>
+                            </div>`}
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm">
+                            <div class="bg-zinc-900/80 border border-zinc-800 rounded-lg p-4">
+                                <div class="text-zinc-500 text-xs uppercase font-bold mb-1">Level ID</div>
+                                <div class="font-mono text-zinc-200">${escapeHtml(lvl.levelId)}</div>
+                            </div>
+                            <div class="bg-zinc-900/80 border border-zinc-800 rounded-lg p-4">
+                                <div class="text-zinc-500 text-xs uppercase font-bold mb-1">Password</div>
+                                <div class="font-mono text-zinc-200">${escapeHtml(lvl.password || 'N/A')}</div>
+                            </div>
+                        </div>
+                        ${lvl.videoUrl ? `
+                        <div class="mb-6">
+                            <div data-video-wrap data-video-url="${escapeHtml(lvl.videoUrl)}"
+                                 class="aspect-video rounded-lg overflow-hidden border border-zinc-800 bg-black relative cursor-pointer group"
+                                 onclick="playLevelVideo(this)">
+                                <img src="${escapeHtml(toThumbUrl(lvl.videoUrl))}" alt="Video thumbnail"
+                                     class="w-full h-full object-cover absolute inset-0"
+                                     onerror="this.style.display='none'">
+                                <div class="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition flex items-center justify-center">
+                                    <div class="w-16 h-16 rounded-full bg-red-600 group-hover:bg-red-500 flex items-center justify-center shadow-lg transition">
+                                        <i class="fa-solid fa-play text-white text-2xl ml-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="${escapeHtml(toWatchUrl(lvl.videoUrl))}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-2 mt-2 text-sm text-zinc-400 hover:text-white transition"
+                               onclick="event.stopPropagation()">
+                                <i class="fa-brands fa-youtube text-red-500"></i> Open on YouTube
+                            </a>
+                        </div>` : ''}
+                        <div>
+                            <h3 class="font-bold text-lg mb-3 border-b border-zinc-800 pb-2">Victors / Records</h3>
+                            ${(lvl.records && lvl.records.length) ? `
+                            <div class="overflow-x-auto"><table class="w-full text-sm">
+                                <thead><tr class="text-left text-zinc-500 text-xs uppercase"><th class="pb-2 pr-4">Player</th><th class="pb-2 pr-4">Percent</th><th class="pb-2">Hz</th></tr></thead>
+                                <tbody class="divide-y divide-zinc-800/60">
+                                ${lvl.records.map(r => {
+                                    const safeName = String(r.player).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                                    return '<tr><td class="py-2.5 pr-4 font-medium text-zinc-200"><i class="fa-solid fa-trophy text-amber-500/80 mr-1.5 text-xs"></i><button onclick="showPlayerProfile(\'' + safeName + '\')" class="hover:underline">' + escapeHtml(r.player) + '</button></td><td class="py-2.5 pr-4 text-zinc-400">' + escapeHtml(r.percent) + '</td><td class="py-2.5 text-zinc-400">' + escapeHtml(r.hz) + '</td></tr>';
+                                }).join('')}
+                                </tbody>
+                            </table></div>` : '<p class="text-zinc-500 text-sm">No victors yet.</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getPlayerStats(playerName) {
+            const levels = getLevels();
+            const completed = [];
+            levels.forEach((l, i) => {
+                const rec = (l.records || []).find(r => r.player.toLowerCase() === playerName.toLowerCase());
+                if (rec) {
+                    const rank = i + 1;
+                    completed.push({
+                        level: l,
+                        rank,
+                        isLegacy: rank > listSettings.mainListSize,
+                        points: l.points || 0,
+                        percent: rec.percent,
+                        hz: rec.hz
+                    });
+                }
+            });
+            // Sort by rank (hardest first)
+            completed.sort((a, b) => a.rank - b.rank);
+            const main = completed.filter(c => !c.isLegacy);
+            const legacy = completed.filter(c => c.isLegacy);
+            const totalPoints = completed.reduce((s, c) => s + c.points, 0);
+            const hardest = completed[0] || null;
+
+            // Global rank among all players
+            const playerMap = {};
+            levels.forEach(l => {
+                (l.records || []).forEach(r => {
+                    if (!playerMap[r.player]) playerMap[r.player] = 0;
+                    playerMap[r.player] += l.points || 0;
+                });
+            });
+            const ranked = Object.entries(playerMap).sort((a, b) => b[1] - a[1]);
+            const globalRank = ranked.findIndex(([n]) => n.toLowerCase() === playerName.toLowerCase()) + 1;
+
+            return { completed, main, legacy, totalPoints, hardest, globalRank, totalPlayers: ranked.length };
+        }
+
+        function renderLeaderboard(area) {
+            const levels = getLevels();
+            const playerMap = {};
+            levels.forEach(l => {
+                (l.records || []).forEach(r => {
+                    if (!playerMap[r.player]) playerMap[r.player] = { points: 0, count: 0 };
+                    playerMap[r.player].points += l.points || 0;
+                    playerMap[r.player].count += 1;
+                });
+            });
+            const ranked = Object.entries(playerMap).map(([name, d]) => ({ name, ...d })).sort((a,b) => b.points - a.points);
+            area.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-black mb-6">${currentListType}SCL Leaderboard</h2>
+                    ${ranked.length ? `
+                    <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-zinc-900 text-zinc-500 text-xs uppercase"><tr>
+                                <th class="px-4 py-3 text-left">#</th><th class="px-4 py-3 text-left">Player</th>
+                                <th class="px-4 py-3 text-right">Victories</th><th class="px-4 py-3 text-right">Points</th>
+                            </tr></thead>
+                            <tbody class="divide-y divide-zinc-800">
+                                ${ranked.map((p,i) => `
+                                    <tr class="hover:bg-zinc-800/40 cursor-pointer" onclick="showPlayerProfile('${String(p.name).replace(/'/g, "\\'")}')">
+                                        <td class="px-4 py-3 font-bold text-zinc-500">${i+1}</td>
+                                        <td class="px-4 py-3 font-medium text-zinc-100 hover:underline">${escapeHtml(p.name)}</td>
+                                        <td class="px-4 py-3 text-right text-zinc-400">${p.count}</td>
+                                        <td class="px-4 py-3 text-right font-bold">${p.points}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-zinc-600 mt-3 text-center">Click a player to view their profile</p>
+                    ` : '<p class="text-zinc-500">No records yet.</p>'}
+                </div>
+            `;
+        }
+
+        function showPlayerProfile(playerName) {
+            currentTab = 'leaderboard';
+            // highlight nav
+            ['list','packs','leaderboard','roulette','submit','submit-lvl','admin'].forEach(t => {
+                const btn = document.getElementById('nav-btn-' + t);
+                if (btn) {
+                    btn.className = t === 'leaderboard'
+                        ? 'px-3 py-1.5 rounded-md bg-zinc-800 text-white transition'
+                        : 'px-3 py-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition';
+                }
+            });
+            const area = document.getElementById('main-content-area');
+            const stats = getPlayerStats(playerName);
+            const scoreDisplay = stats.totalPoints % 1 === 0 ? stats.totalPoints : stats.totalPoints.toFixed(2);
+
+            // Color levels by rank tier (pointercrate-style feel)
+            function levelColor(rank, isLegacy) {
+                if (isLegacy) return 'text-zinc-500';
+                if (rank <= 10) return 'text-red-400';
+                if (rank <= 25) return 'text-orange-400';
+                if (rank <= 50) return 'text-yellow-400';
+                return 'text-zinc-400';
+            }
+
+            area.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <button onclick="switchMainTab('leaderboard')" class="text-sm text-zinc-400 hover:text-white mb-4 inline-flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Leaderboard
+                    </button>
+
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xl font-black text-zinc-300">
+                            ${escapeHtml(playerName.charAt(0).toUpperCase())}
+                        </div>
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-black text-white flex items-center gap-2">
+                                ${stats.globalRank ? '<span class="text-zinc-500 font-bold text-lg">[' + stats.globalRank + ']</span>' : ''}
+                                ${escapeHtml(playerName)}
+                            </h1>
+                            <div class="text-xs text-zinc-500">${currentListType}SCL Profile</div>
+                        </div>
+                    </div>
+
+                    <!-- Rank & Score cards -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 text-center">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">${currentListType}SCL Rank</div>
+                            <div class="text-3xl font-black text-white">${stats.globalRank || '—'}</div>
+                        </div>
+                        <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 text-center">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">${currentListType}SCL Score</div>
+                            <div class="text-3xl font-black text-white">${scoreDisplay}</div>
+                        </div>
+                    </div>
+
+                    <!-- Stats & Hardest -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">List Stats</div>
+                            <div class="text-sm text-zinc-300">
+                                <span class="text-yellow-400 font-semibold">${stats.main.length} Main</span>
+                                <span class="text-zinc-600 mx-1">·</span>
+                                <span class="text-zinc-400 font-semibold">${stats.legacy.length} Legacy</span>
+                            </div>
+                            <div class="text-xs text-zinc-500 mt-1">${stats.completed.length} total completions</div>
+                        </div>
+                        <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Hardest Clear</div>
+                            ${stats.hardest ? `
+                                <button onclick="selectedLevelId=${stats.hardest.level.id}; switchMainTab('list')" class="text-left hover:underline">
+                                    <div class="text-sm font-bold ${levelColor(stats.hardest.rank, stats.hardest.isLegacy)}">${escapeHtml(stats.hardest.level.name)}</div>
+                                    <div class="text-xs text-zinc-500 mt-0.5">${stats.hardest.isLegacy ? 'Legacy' : '#' + stats.hardest.rank} · ${stats.hardest.points} pts</div>
+                                </button>
+                            ` : '<div class="text-sm text-zinc-500">None</div>'}
+                        </div>
+                    </div>
+
+                    <!-- Levels completed -->
+                    <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 mb-4">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-3">Levels Completed</div>
+                        ${stats.completed.length ? `
+                            <div class="text-sm leading-relaxed flex flex-wrap gap-x-1 gap-y-1">
+                                ${stats.completed.map((c, i) => `
+                                    <button onclick="selectedLevelId=${c.level.id}; switchMainTab('list')"
+                                        class="${levelColor(c.rank, c.isLegacy)} hover:underline font-medium text-left">
+                                        ${escapeHtml(c.level.name)}${i < stats.completed.length - 1 ? '<span class="text-zinc-600"> · </span>' : ''}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        ` : '<div class="text-sm text-zinc-500">None</div>'}
+                    </div>
+
+                    <!-- Detailed records table -->
+                    ${stats.completed.length ? `
+                    <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden mb-4">
+                        <div class="px-4 py-3 border-b border-zinc-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Record Details</div>
+                        </div>
+                        <table class="w-full text-sm">
+                            <thead class="text-zinc-500 text-xs uppercase">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Rank</th>
+                                    <th class="px-4 py-2 text-left">Level</th>
+                                    <th class="px-4 py-2 text-right">Pts</th>
+                                    <th class="px-4 py-2 text-right">Hz</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-800/60">
+                                ${stats.completed.map(c => `
+                                    <tr class="hover:bg-zinc-800/40 cursor-pointer" onclick="selectedLevelId=${c.level.id}; switchMainTab('list')">
+                                        <td class="px-4 py-2.5 text-zinc-500 font-bold">${c.isLegacy ? 'L' : '#' + c.rank}</td>
+                                        <td class="px-4 py-2.5 font-medium ${levelColor(c.rank, c.isLegacy)}">${escapeHtml(c.level.name)}</td>
+                                        <td class="px-4 py-2.5 text-right text-zinc-400">${c.points}</td>
+                                        <td class="px-4 py-2.5 text-right text-zinc-500">${escapeHtml(c.hz || '—')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>` : ''}
+                </div>
+            `;
+        }
+
+        function renderRoulette(area) {
+            area.innerHTML = `
+                <div class="max-w-md mx-auto text-center py-12">
+                    <h2 class="text-2xl font-black mb-6">Level Roulette</h2>
+                    <p class="text-zinc-400 mb-8">Spin for a random ${currentListType}SCL level.</p>
+                    <button onclick="spinRoulette()" class="bg-zinc-100 text-zinc-900 font-bold px-8 py-3 rounded-lg hover:bg-white transition"><i class="fa-solid fa-dice mr-2"></i> Spin</button>
+                    <div id="roulette-result" class="mt-10"></div>
+                </div>
+            `;
+        }
+        function spinRoulette() {
+            const levels = getLevels();
+            if (!levels.length) {
+                document.getElementById('roulette-result').innerHTML = '<p class="text-zinc-500">No levels available.</p>';
+                return;
+            }
+            const lvl = levels[Math.floor(Math.random() * levels.length)];
+            const rank = levels.findIndex(l => l.id === lvl.id) + 1;
+            document.getElementById('roulette-result').innerHTML = `
+                <div class="bg-zinc-900 border border-zinc-700 rounded-xl p-6 text-left">
+                    <div class="text-xs text-zinc-500 font-bold mb-1">#${rank}</div>
+                    <div class="text-xl font-bold mb-1">${escapeHtml(lvl.name)}</div>
+                    <div class="text-sm text-zinc-400 mb-4">by ${escapeHtml(lvl.creator)} · ${lvl.points} pts</div>
+                    <button onclick="selectedLevelId=${lvl.id}; switchMainTab('list')" class="text-sm text-zinc-300 underline hover:text-white">View Level →</button>
+                </div>
+            `;
+        }
+
+        function renderSubmitRecord(area) {
+            const levels = getLevels();
+            area.innerHTML = `
+                <div class="max-w-lg mx-auto">
+                    <h2 class="text-2xl font-black mb-2">Submit a Record</h2>
+                    <p class="text-zinc-400 text-sm mb-6">Reviewed by list editors in Admin.</p>
+                    <form class="space-y-4 bg-zinc-900/50 border border-zinc-800 rounded-xl p-6" onsubmit="handleSubmitRecord(event)">
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Level</label>
+                            <select name="levelId" required class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500">
+                                <option value="">Select a level...</option>
+                                ${levels.map((l,i) => '<option value="' + l.id + '">#' + (i+1) + ' - ' + escapeHtml(l.name) + '</option>').join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Your Username</label>
+                            <input name="player" required type="text" value="${currentUser ? escapeHtml(currentUser.username) : ''}" placeholder="GD username" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Percent</label>
+                                <input name="percent" required type="text" value="100%" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Hz / FPS</label>
+                                <input name="hz" required type="text" placeholder="240Hz" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Video URL</label>
+                            <input name="videoUrl" required type="url" placeholder="https://youtube.com/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500">
+                        </div>
+                        <div class="text-sm text-zinc-300">${currentListType}SCL (current list)</div>
+                        <button type="submit" class="w-full bg-zinc-100 text-zinc-900 font-bold py-2.5 rounded-lg hover:bg-white transition">Submit Record</button>
+                    </form>
+                </div>
+            `;
+        }
+        function handleSubmitRecord(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            pendingRecords.push({
+                id: Date.now(), listType: currentListType,
+                levelId: parseInt(fd.get('levelId')),
+                player: fd.get('player').trim(),
+                percent: fd.get('percent').trim(),
+                hz: fd.get('hz').trim(),
+                videoUrl: toEmbedUrl(fd.get('videoUrl').trim()),
+                submittedAt: new Date().toISOString()
+            });
+            saveData();
+            e.target.reset();
+            showToast('Record submitted for review!');
+        }
+
+        function renderSubmitLevel(area) {
+            area.innerHTML = `
+                <div class="max-w-lg mx-auto">
+                    <h2 class="text-2xl font-black mb-2">Submit a Level</h2>
+                    <p class="text-zinc-400 text-sm mb-6">Editors review placement, verifier, etc.</p>
+                    <form class="space-y-4 bg-zinc-900/50 border border-zinc-800 rounded-xl p-6" onsubmit="handleSubmitLevel(event)">
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Level Name</label>
+                            <input name="name" required type="text" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Creator</label><input name="creator" required type="text" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                            <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Verifier</label><input name="verifier" required type="text" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                            <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Publisher</label><input name="publisher" required type="text" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Level ID</label><input name="levelId" required type="text" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                            <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Password</label><input name="password" type="text" placeholder="free / none / code" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Suggested Placement (#)</label><input name="placement" required type="number" min="1" value="1" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                            <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Points</label><input name="points" required type="number" min="1" value="100" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                        </div>
+                        <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Video URL</label><input name="videoUrl" type="url" placeholder="https://youtube.com/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                        <div><label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Thumbnail URL</label><input name="thumbnail" type="url" placeholder="https://i.imgur.com/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500"></div>
+                        <div class="text-sm text-zinc-300">${currentListType}SCL (current list)</div>
+                        <button type="submit" class="w-full bg-zinc-100 text-zinc-900 font-bold py-2.5 rounded-lg hover:bg-white transition">Submit Level</button>
+                    </form>
+                </div>
+            `;
+        }
+        function handleSubmitLevel(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            pendingLevels.push({
+                id: Date.now(), listType: currentListType,
+                name: fd.get('name').trim(),
+                creator: fd.get('creator').trim(),
+                verifier: fd.get('verifier').trim(),
+                publisher: fd.get('publisher').trim(),
+                levelId: fd.get('levelId').trim(),
+                password: fd.get('password').trim() || 'none',
+                placement: parseInt(fd.get('placement')) || 1,
+                points: parseInt(fd.get('points')) || 100,
+                videoUrl: toEmbedUrl(fd.get('videoUrl').trim() || ''),
+                thumbnail: fd.get('thumbnail').trim() || '',
+                submittedAt: new Date().toISOString()
+            });
+            saveData();
+            e.target.reset();
+            showToast('Level submitted for review!');
+        }
+
+        // ========== ADMIN ==========
+        function renderAdmin(area) {
+            if (!currentUser) {
+                area.innerHTML = `
+                    <div class="max-w-sm mx-auto py-16 text-center">
+                        <i class="fa-solid fa-lock text-4xl text-zinc-600 mb-4"></i>
+                        <h2 class="text-2xl font-black mb-2">Login Required</h2>
+                        <p class="text-zinc-500 text-sm mb-6">Log in at the top right before accessing Admin.</p>
+                        <button onclick="openLoginModal()" class="bg-zinc-100 text-zinc-900 font-bold px-6 py-2.5 rounded-lg hover:bg-white transition">Log In</button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (isAdminLoggedIn) {
+                area.innerHTML = `
+                    <div class="max-w-4xl mx-auto">
+                        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                            <h2 class="text-2xl font-black">Admin Panel <span class="text-sm font-normal text-zinc-500">as ${escapeHtml(currentUser.username)}</span></h2>
+                            <button onclick="isAdminLoggedIn=false; renderMainContent()" class="text-sm text-zinc-400 hover:text-white underline">Lock Admin</button>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-6 border-b border-zinc-800 pb-3">
+                            <button onclick="adminSubTab='levels'; renderMainContent()" class="px-3 py-1.5 rounded-md text-sm font-semibold ${adminSubTab==='levels'?'bg-zinc-800 text-white':'text-zinc-400 hover:text-white'}">Manage Levels</button>
+                            <button onclick="adminSubTab='packs'; renderMainContent()" class="px-3 py-1.5 rounded-md text-sm font-semibold ${adminSubTab==='packs'?'bg-zinc-800 text-white':'text-zinc-400 hover:text-white'}">Packs</button>
+                            <button onclick="adminSubTab='settings'; renderMainContent()" class="px-3 py-1.5 rounded-md text-sm font-semibold ${adminSubTab==='settings'?'bg-zinc-800 text-white':'text-zinc-400 hover:text-white'}">Points Settings</button>
+                            <button onclick="adminSubTab='editors'; renderMainContent()" class="px-3 py-1.5 rounded-md text-sm font-semibold ${adminSubTab==='editors'?'bg-zinc-800 text-white':'text-zinc-400 hover:text-white'}">List Editors</button>
+                            <button onclick="adminSubTab='pending-levels'; renderMainContent()" class="px-3 py-1.5 rounded-md text-sm font-semibold ${adminSubTab==='pending-levels'?'bg-zinc-800 text-white':'text-zinc-400 hover:text-white'}">Pending Levels ${pendingLevels.length ? '<span class="ml-1 bg-zinc-600 text-xs px-1.5 py-0.5 rounded-full">' + pendingLevels.length + '</span>' : ''}</button>
+                            <button onclick="adminSubTab='pending-records'; renderMainContent()" class="px-3 py-1.5 rounded-md text-sm font-semibold ${adminSubTab==='pending-records'?'bg-zinc-800 text-white':'text-zinc-400 hover:text-white'}">Pending Records ${pendingRecords.length ? '<span class="ml-1 bg-zinc-600 text-xs px-1.5 py-0.5 rounded-full">' + pendingRecords.length + '</span>' : ''}</button>
+                        </div>
+                        <div id="admin-content"></div>
+                    </div>
+                `;
+                const content = document.getElementById('admin-content');
+                if (adminSubTab === 'levels') renderAdminLevels(content);
+                else if (adminSubTab === 'packs') renderAdminPacks(content);
+                else if (adminSubTab === 'settings') renderAdminSettings(content);
+                else if (adminSubTab === 'editors') renderAdminEditors(content);
+                else if (adminSubTab === 'pending-levels') renderAdminPendingLevels(content);
+                else if (adminSubTab === 'pending-records') renderAdminPendingRecords(content);
+                return;
+            }
+
+            const isOwner = currentUser.username.toLowerCase() === OWNER_NAME.toLowerCase();
+            const isEd = isEditor(currentUser.username);
+
+            if (isEd && !isOwner) {
+                area.innerHTML = `
+                    <div class="max-w-sm mx-auto py-16 text-center">
+                        <h2 class="text-2xl font-black mb-2">Admin Access</h2>
+                        <p class="text-zinc-400 text-sm mb-6">Logged in as list editor <strong class="text-white">${escapeHtml(currentUser.username)}</strong>. No password needed.</p>
+                        <button onclick="isAdminLoggedIn=true; showToast('Admin unlocked'); renderMainContent()" class="bg-zinc-100 text-zinc-900 font-bold px-6 py-2.5 rounded-lg hover:bg-white transition">Enter Admin</button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (isOwner) {
+                area.innerHTML = `
+                    <div class="max-w-sm mx-auto py-16">
+                        <h2 class="text-2xl font-black mb-2 text-center">Owner Unlock</h2>
+                        <p class="text-zinc-500 text-xs text-center mb-6">Logged in as Zorvy. Enter the admin password to continue.</p>
+                        <form onsubmit="handleOwnerAdminUnlock(event)" class="space-y-4 bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
+                            <div>
+                                <label class="block text-xs font-bold text-zinc-500 uppercase mb-1.5">Admin Password</label>
+                                <input id="owner-admin-pw" type="password" required class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-zinc-500" placeholder="Admin password">
+                            </div>
+                            <button type="submit" class="w-full bg-zinc-100 text-zinc-900 font-bold py-2.5 rounded-lg hover:bg-white transition">Unlock Admin</button>
+                        </form>
+                    </div>
+                `;
+                return;
+            }
+
+            area.innerHTML = `
+                <div class="max-w-sm mx-auto py-16 text-center">
+                    <i class="fa-solid fa-ban text-4xl text-zinc-600 mb-4"></i>
+                    <h2 class="text-2xl font-black mb-2">Access Denied</h2>
+                    <p class="text-zinc-500 text-sm mb-2">Logged in as <strong class="text-white">${escapeHtml(currentUser.username)}</strong>.</p>
+                    <p class="text-zinc-500 text-sm">You are not a list editor. Only Zorvy (with password) or list editors can access Admin.</p>
+                    <p class="text-zinc-600 text-xs mt-4">Typing Zorvy + the password does nothing unless you are logged in as Zorvy at the top right.</p>
+                </div>
+            `;
+        }
+
+        function handleOwnerAdminUnlock(e) {
+            e.preventDefault();
+            if (!currentUser || currentUser.username.toLowerCase() !== OWNER_NAME.toLowerCase()) {
+                showToast('You must be logged in as Zorvy');
+                isAdminLoggedIn = false;
+                renderMainContent();
+                return;
+            }
+            const pw = document.getElementById('owner-admin-pw').value;
+            if (pw === ADMIN_PASSWORD) {
+                isAdminLoggedIn = true;
+                showToast('Admin unlocked');
+                renderMainContent();
+            } else {
+                showToast('Incorrect admin password');
+            }
+        }
+
+        function renderAdminLevels(container) {
+            const levels = getLevels();
+            container.innerHTML = `
+                <div class="mb-6 bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+                    <h3 class="font-bold mb-2">Add New Level to ${currentListType}SCL</h3>
+                    <p class="text-xs text-zinc-500 mb-4">Points are auto-calculated from placement (#1 = ${listSettings.basePoints} pts, top ${listSettings.mainListSize} only). Rank ${listSettings.mainListSize + 1}+ = Legacy (0 pts).</p>
+                    <form onsubmit="handleAdminAddLevel(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <input name="name" required placeholder="Level name" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        <input name="levelId" required placeholder="Level ID" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        <input name="creator" required placeholder="Creator" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        <input name="verifier" required placeholder="Verifier" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        <input name="publisher" required placeholder="Publisher" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        <input name="password" placeholder="Password" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        <input name="placement" type="number" required placeholder="Placement (#)" value="1" min="1" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500 sm:col-span-2">
+                        <input name="videoUrl" placeholder="Video URL" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500 sm:col-span-2">
+                        <input name="thumbnail" placeholder="Thumbnail image URL" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500 sm:col-span-2">
+                        <button type="submit" class="sm:col-span-2 bg-zinc-100 text-zinc-900 font-bold py-2 rounded-lg hover:bg-white transition">Add Level</button>
+                    </form>
+                </div>
+                <h3 class="font-bold mb-3">Current ${currentListType}SCL Levels (${levels.length})</h3>
+                <div class="space-y-2">
+                    ${levels.map((l, i) => {
+                        const rank = i + 1;
+                        const isLegacy = rank > listSettings.mainListSize;
+                        return `
+                        <div class="flex items-center gap-3 bg-zinc-900/40 border border-zinc-800 rounded-lg px-4 py-3 text-sm">
+                            <span class="text-zinc-500 font-bold w-14">${isLegacy ? 'Legacy' : '#' + rank}</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold truncate">${escapeHtml(l.name)}</div>
+                                <div class="text-xs text-zinc-500">${escapeHtml(l.creator)} · ${isLegacy ? '0 pts' : l.points + ' pts'} · ID ${escapeHtml(l.levelId)}</div>
+                            </div>
+                            <button onclick="editLevelThumbnail(${l.id})" class="text-zinc-400 hover:text-white px-2" title="Set thumbnail"><i class="fa-solid fa-image"></i></button>
+                            <button onclick="removeLevel(${l.id})" class="text-red-400 hover:text-red-300 px-2" title="Remove"><i class="fa-solid fa-trash"></i></button>
+                        </div>`;
+                    }).join('') || '<p class="text-zinc-500">No levels.</p>'}
+                </div>
+            `;
+        }
+        function handleAdminAddLevel(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const levels = getLevels();
+            const newId = levels.length ? Math.max(...levels.map(l => l.id)) + 1 : 1;
+            const placement = Math.min(Math.max(1, parseInt(fd.get('placement')) || 1), levels.length + 1);
+            levels.splice(placement - 1, 0, {
+                id: newId,
+                name: fd.get('name').trim(),
+                creator: fd.get('creator').trim(),
+                verifier: fd.get('verifier').trim(),
+                publisher: fd.get('publisher').trim(),
+                points: 0, // recalculated by setLevels
+                levelId: fd.get('levelId').trim(),
+                password: fd.get('password').trim() || 'none',
+                videoUrl: toEmbedUrl(fd.get('videoUrl').trim() || ''),
+                thumbnail: fd.get('thumbnail').trim() || '',
+                records: []
+            });
+            setLevels(levels);
+            showToast(placement > listSettings.mainListSize ? 'Level added as Legacy' : 'Level added at #' + placement + ' (' + calcPointsForRank(placement) + ' pts)');
+            renderMainContent();
+            renderSidebar();
+        }
+
+        function renderAdminPacks(container) {
+            container.innerHTML = `
+                <div class="mb-6 bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+                    <h3 class="font-bold mb-2">Add Pack</h3>
+                    <p class="text-xs text-zinc-500 mb-4">Pack name and Geometry Dash pack / list ID.</p>
+                    <form onsubmit="handleAddPack(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <input id="pack-name" required type="text" placeholder="Pack name" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        <input id="pack-id" required type="text" placeholder="Pack ID" class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        <button type="submit" class="sm:col-span-2 bg-zinc-100 text-zinc-900 font-bold py-2 rounded-lg hover:bg-white transition">Add Pack</button>
+                    </form>
+                </div>
+                <h3 class="font-bold mb-3">Current Packs (${packs.length})</h3>
+                <div class="space-y-2">
+                    ${packs.length ? packs.map(p => `
+                        <div class="flex items-center gap-3 bg-zinc-900/40 border border-zinc-800 rounded-lg px-4 py-3 text-sm">
+                            <i class="fa-solid fa-box-open text-zinc-500"></i>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold">${escapeHtml(p.name)}</div>
+                                <div class="text-xs text-zinc-500 font-mono">ID: ${escapeHtml(p.packId)}</div>
+                            </div>
+                            <button onclick="removePack(${p.id})" class="text-red-400 hover:text-red-300 px-2"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `).join('') : '<p class="text-zinc-500">No packs yet.</p>'}
+                </div>
+            `;
+        }
+        function handleAddPack(e) {
+            e.preventDefault();
+            const name = document.getElementById('pack-name').value.trim();
+            const packId = document.getElementById('pack-id').value.trim();
+            if (!name || !packId) return;
+            const id = packs.length ? Math.max(...packs.map(p => p.id)) + 1 : 1;
+            packs.push({ id, name, packId });
+            saveData();
+            showToast('Pack added');
+            renderMainContent();
+        }
+        function removePack(id) {
+            if (!confirm('Remove this pack?')) return;
+            packs = packs.filter(p => p.id !== id);
+            saveData();
+            showToast('Pack removed');
+            renderMainContent();
+        }
+
+        function renderAdminSettings(container) {
+            const previewRanks = [1, 2, 3, 5, 10, 25, 50];
+            const gistIdVal = escapeHtml(getGistId());
+            const hasToken = !!getGithubToken();
+            container.innerHTML = `
+                <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 max-w-lg mb-6">
+                    <h3 class="font-bold mb-1">Cloud Sync (GitHub Gist)</h3>
+                    <p class="text-xs text-zinc-500 mb-4">Shared list data lives in a public GitHub Gist. Everyone can read it. Only you (with a token) can write.</p>
+                    <ol class="text-xs text-zinc-400 space-y-1.5 mb-4 list-decimal list-inside">
+                        <li>GitHub → Settings → Developer settings → <strong class="text-zinc-300">Personal access tokens</strong> → Generate (classic) with <strong class="text-zinc-300">gist</strong> scope</li>
+                        <li>GitHub → <strong class="text-zinc-300">Gist</strong> → New gist → filename <code class="text-zinc-300">scl-data.json</code> → content <code class="text-zinc-300">{}</code> → Create <strong class="text-zinc-300">public</strong> gist</li>
+                        <li>Copy the Gist ID from the URL: <code class="text-zinc-300">gist.github.com/you/<span class="text-emerald-400">THIS_PART</span></code></li>
+                        <li>Paste Gist ID + token below → Save → Force Upload</li>
+                    </ol>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Gist ID</label>
+                            <input id="gh-gist-id" type="text" value="${gistIdVal}" placeholder="e.g. a1b2c3d4e5f6..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500 font-mono text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">GitHub token (gist scope) ${hasToken ? '<span class="text-emerald-500 normal-case font-semibold">· saved</span>' : ''}</label>
+                            <input id="gh-token" type="password" value="" placeholder="${hasToken ? '•••••••• (leave blank to keep)' : 'ghp_...'}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500 font-mono text-xs">
+                        </div>
+                        <button type="button" onclick="saveGithubSettings()" class="w-full bg-zinc-100 text-zinc-900 font-bold py-2 rounded-lg hover:bg-white transition">Save GitHub Settings</button>
+                        <button type="button" onclick="forceCloudUpload()" class="w-full bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg transition">Force Upload List to GitHub</button>
+                        <button type="button" onclick="loadFromGithub(false).then(function(){showToast('Pulled latest from GitHub'); refreshUI();})" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold py-2 rounded-lg transition text-sm">Pull Latest from GitHub</button>
+                    </div>
+                    <p class="text-[10px] text-zinc-600 mt-3">Token stays in <em>your</em> browser only. After setup: put the Gist ID into <code class="text-zinc-400">DEFAULT_GIST_ID</code> near the top of this HTML file and redeploy — then every visitor loads the same list automatically (no token needed to read).</p>
+                </div>
+                <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 max-w-lg">
+                    <h3 class="font-bold mb-2">Points Settings</h3>
+                    <p class="text-xs text-zinc-500 mb-4">#1 is always the base points. Each lower rank multiplies by the decay rate. Only top ${listSettings.mainListSize} give points; the rest are Legacy.</p>
+                    <form onsubmit="handleSaveSettings(event)" class="space-y-4 text-sm">
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Base points (#1)</label>
+                            <input id="set-base" type="number" min="1" value="${listSettings.basePoints}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Decay rate (e.g. 0.948)</label>
+                            <input id="set-decay" type="number" step="0.001" min="0.01" max="0.999" value="${listSettings.decayRate}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                            <p class="text-[10px] text-zinc-600 mt-1">Each rank = previous rank × decay rate</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">Main list size (rest = Legacy)</label>
+                            <input id="set-mainsize" type="number" min="1" max="500" value="${listSettings.mainListSize}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-500">
+                        </div>
+                        <button type="submit" class="w-full bg-zinc-100 text-zinc-900 font-bold py-2 rounded-lg hover:bg-white transition">Save & Recalculate Points</button>
+                    </form>
+                    <div class="mt-6 border-t border-zinc-800 pt-4">
+                        <h4 class="text-xs font-bold text-zinc-500 uppercase mb-2">Preview (current settings)</h4>
+                        <div class="grid grid-cols-2 gap-1 text-xs font-mono text-zinc-400">
+                            ${previewRanks.map(r => `<div>#${r} → <span class="text-zinc-200">${calcPointsForRank(r)} pts</span></div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            listSettings.basePoints = parseInt(document.getElementById('set-base').value) || 250;
+            listSettings.decayRate = parseFloat(document.getElementById('set-decay').value) || 0.948;
+            listSettings.mainListSize = parseInt(document.getElementById('set-mainsize').value) || 50;
+            recalculateAllPoints();
+            saveData();
+            showToast('Settings saved — all points recalculated');
+            renderMainContent();
+            renderSidebar();
+        }
+        function removeLevel(id) {
+            if (!confirm('Remove this level?')) return;
+            setLevels(getLevels().filter(l => l.id !== id));
+            if (selectedLevelId === id) selectedLevelId = null;
+            showToast('Level removed');
+            renderMainContent();
+            renderSidebar();
+        }
+        function editLevelThumbnail(id) {
+            const url = prompt('Enter thumbnail image URL (leave empty to clear):');
+            if (url === null) return;
+            const levels = getLevels();
+            const lvl = levels.find(l => l.id === id);
+            if (lvl) {
+                lvl.thumbnail = url.trim();
+                setLevels(levels);
+                showToast('Thumbnail updated');
+                renderMainContent();
+                renderSidebar();
+            }
+        }
+
+        function renderAdminEditors(container) {
+            container.innerHTML = `
+                <div class="mb-6 bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+                    <h3 class="font-bold mb-2">Add List Editor</h3>
+                    <p class="text-xs text-zinc-500 mb-4">They log in at the top right with their username, then can unlock Admin with no password.</p>
+                    <form onsubmit="handleAddEditor(event)" class="flex gap-2">
+                        <input id="new-editor-name" required type="text" placeholder="Editor username" class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500">
+                        <button type="submit" class="bg-zinc-100 text-zinc-900 font-bold px-4 py-2 rounded-lg hover:bg-white transition text-sm">Add</button>
+                    </form>
+                </div>
+                <h3 class="font-bold mb-3">Current List Editors (${listEditors.length})</h3>
+                <div class="space-y-2">
+                    ${listEditors.length ? listEditors.map((e, i) => `
+                        <div class="flex items-center gap-3 bg-zinc-900/40 border border-zinc-800 rounded-lg px-4 py-3 text-sm">
+                            <i class="fa-solid ${i === 0 ? 'fa-crown text-amber-500' : 'fa-user text-zinc-400'}"></i>
+                            <span class="flex-1 font-medium">${escapeHtml(e.name)}</span>
+                            <button onclick="removeEditor('${String(e.name).replace(/'/g, "\\\\'")}')" class="text-red-400 hover:text-red-300 px-2"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `).join('') : '<p class="text-zinc-500">No editors yet.</p>'}
+                </div>
+                <p class="text-xs text-zinc-600 mt-4">Zorvy must log in at the top right as Zorvy first, then enter the admin password here. Typing Zorvy + password while logged in as someone else will not work.</p>
+            `;
+        }
+        function handleAddEditor(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-editor-name').value.trim();
+            if (!name) return;
+            if (isEditor(name)) { showToast('That editor already exists'); return; }
+            listEditors.push({ name });
+            saveData();
+            renderEditorsSidebar();
+            showToast('Added editor: ' + name);
+            renderMainContent();
+        }
+        function removeEditor(name) {
+            if (!confirm('Remove editor "' + name + '"?')) return;
+            listEditors = listEditors.filter(e => e.name.toLowerCase() !== name.toLowerCase());
+            saveData();
+            if (currentUser && currentUser.username.toLowerCase() === name.toLowerCase() && name.toLowerCase() !== OWNER_NAME.toLowerCase()) {
+                isAdminLoggedIn = false;
+            }
+            renderEditorsSidebar();
+            showToast('Editor removed');
+            renderMainContent();
+        }
+
+        function renderAdminPendingLevels(container) {
+            if (!pendingLevels.length) {
+                container.innerHTML = '<p class="text-zinc-500 py-8 text-center">No pending level submissions.</p>';
+                return;
+            }
+            container.innerHTML = '<div class="space-y-4">' + pendingLevels.map(p => `
+                <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 text-sm">
+                    <div class="flex flex-wrap justify-between gap-2 mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-zinc-500 uppercase">${p.listType}SCL · Suggested #${p.placement}</span>
+                            <h4 class="text-lg font-bold mt-0.5">${escapeHtml(p.name)}</h4>
+                        </div>
+                        <div class="text-xs text-zinc-500">${new Date(p.submittedAt).toLocaleString()}</div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-zinc-400 mb-4">
+                        <div>Creator: <span class="text-zinc-200">${escapeHtml(p.creator)}</span></div>
+                        <div>Verifier: <span class="text-zinc-200">${escapeHtml(p.verifier)}</span></div>
+                        <div>Publisher: <span class="text-zinc-200">${escapeHtml(p.publisher)}</span></div>
+                        <div>Level ID: <span class="text-zinc-200 font-mono">${escapeHtml(p.levelId)}</span></div>
+                        <div>Password: <span class="text-zinc-200">${escapeHtml(p.password)}</span></div>
+                        <div>Points: <span class="text-zinc-200">${p.points}</span></div>
+                    </div>
+                    ${p.videoUrl ? '<a href="' + escapeHtml(p.videoUrl) + '" target="_blank" class="text-xs text-zinc-400 underline mb-3 inline-block">Video link</a>' : ''}
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="acceptPendingLevel(${p.id})" class="bg-emerald-700/80 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-md transition">Accept</button>
+                        <button onclick="rejectPendingLevel(${p.id})" class="bg-red-900/60 hover:bg-red-800 text-white text-xs font-bold px-3 py-1.5 rounded-md transition">Reject</button>
+                    </div>
+                </div>
+            `).join('') + '</div>';
+        }
+        function acceptPendingLevel(pid) {
+            const idx = pendingLevels.findIndex(p => p.id === pid);
+            if (idx === -1) return;
+            const p = pendingLevels[idx];
+            const levels = p.listType === '10' ? levels10 : levels5;
+            const newId = levels.length ? Math.max(...levels.map(l => l.id)) + 1 : 1;
+            const placement = Math.min(Math.max(1, p.placement || 1), levels.length + 1);
+            levels.splice(placement - 1, 0, {
+                id: newId, name: p.name, creator: p.creator, verifier: p.verifier, publisher: p.publisher,
+                points: 0, levelId: p.levelId, password: p.password,
+                videoUrl: toEmbedUrl(p.videoUrl || ''), thumbnail: p.thumbnail || '', records: []
+            });
+            levels.forEach((lvl, i) => { lvl.points = calcPointsForRank(i + 1); });
+            if (p.listType === '10') levels10 = levels; else levels5 = levels;
+            pendingLevels.splice(idx, 1);
+            saveData();
+            showToast(placement > listSettings.mainListSize
+                ? 'Level accepted as Legacy on ' + p.listType + 'SCL'
+                : 'Level accepted at #' + placement + ' (' + calcPointsForRank(placement) + ' pts) on ' + p.listType + 'SCL');
+            renderMainContent();
+            renderSidebar();
+        }
+        function rejectPendingLevel(pid) {
+            pendingLevels = pendingLevels.filter(p => p.id !== pid);
+            saveData();
+            showToast('Level submission rejected');
+            renderMainContent();
+        }
+
+        function renderAdminPendingRecords(container) {
+            if (!pendingRecords.length) {
+                container.innerHTML = '<p class="text-zinc-500 py-8 text-center">No pending record submissions.</p>';
+                return;
+            }
+            container.innerHTML = '<div class="space-y-4">' + pendingRecords.map(r => {
+                const levels = r.listType === '10' ? levels10 : levels5;
+                const lvl = levels.find(l => l.id === r.levelId);
+                return `
+                <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 text-sm">
+                    <div class="flex flex-wrap justify-between gap-2 mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-zinc-500 uppercase">${r.listType}SCL</span>
+                            <h4 class="text-lg font-bold mt-0.5">${escapeHtml(r.player)} on ${lvl ? escapeHtml(lvl.name) : 'Unknown Level'}</h4>
+                        </div>
+                        <div class="text-xs text-zinc-500">${new Date(r.submittedAt).toLocaleString()}</div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-zinc-400 mb-3">
+                        <div>Percent: <span class="text-zinc-200">${escapeHtml(r.percent)}</span></div>
+                        <div>Hz: <span class="text-zinc-200">${escapeHtml(r.hz)}</span></div>
+                    </div>
+                    ${r.videoUrl ? '<a href="' + escapeHtml(r.videoUrl) + '" target="_blank" class="text-xs text-zinc-400 underline mb-3 inline-block">Video proof</a>' : ''}
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="acceptPendingRecord(${r.id})" class="bg-emerald-700/80 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-md transition">Accept (add as victor)</button>
+                        <button onclick="rejectPendingRecord(${r.id})" class="bg-red-900/60 hover:bg-red-800 text-white text-xs font-bold px-3 py-1.5 rounded-md transition">Reject</button>
+                    </div>
+                </div>`;
+            }).join('') + '</div>';
+        }
+        function acceptPendingRecord(rid) {
+            const idx = pendingRecords.findIndex(r => r.id === rid);
+            if (idx === -1) return;
+            const r = pendingRecords[idx];
+            const levels = r.listType === '10' ? levels10 : levels5;
+            const lvl = levels.find(l => l.id === r.levelId);
+            if (lvl) {
+                if (!lvl.records) lvl.records = [];
+                if (!lvl.records.some(rec => rec.player.toLowerCase() === r.player.toLowerCase())) {
+                    lvl.records.push({ player: r.player, percent: r.percent, hz: r.hz });
+                }
+                if (r.listType === '10') levels10 = levels; else levels5 = levels;
+            }
+            pendingRecords.splice(idx, 1);
+            saveData();
+            showToast('Record accepted — player is now a victor');
+            renderMainContent();
+            renderSidebar();
+        }
+        function rejectPendingRecord(rid) {
+            pendingRecords = pendingRecords.filter(r => r.id !== rid);
+            saveData();
+            showToast('Record submission rejected');
+            renderMainContent();
+        }
+
+        document.getElementById('login-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeLoginModal();
+        });
+
+        loadData();
+        renderUserAuthArea();
+        renderEditorsSidebar();
+        renderSidebar();
+        switchMainTab('list');
+    </script>
+</body>
+</html>
