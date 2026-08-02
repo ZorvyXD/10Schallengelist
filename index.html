@@ -160,7 +160,12 @@
         // GitHub Gist cloud storage (replaces Firebase)
         // Everyone can READ a public gist. Only browsers with a token can WRITE.
         const GIST_FILENAME = 'scl-data.json';
-        function getGistId() { return (localStorage.getItem('scl_gist_id') || DEFAULT_GIST_ID || '').trim(); }
+        function getGistId() {
+            // Prefer baked-in DEFAULT_GIST_ID so a bad localStorage value can't break visitors
+            const baked = (typeof DEFAULT_GIST_ID === 'string' ? DEFAULT_GIST_ID : '').trim();
+            if (baked) return baked;
+            return (localStorage.getItem('scl_gist_id') || '').trim();
+        }
         function getGithubToken() { return (localStorage.getItem('scl_github_token') || '').trim(); }
         function setGistId(id) { localStorage.setItem('scl_gist_id', (id || '').trim()); }
         function setGithubToken(t) { localStorage.setItem('scl_github_token', (t || '').trim()); }
